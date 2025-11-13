@@ -1,4 +1,5 @@
 #include "lab/lab03/lab03.h"
+#include "lab/lab03/transform2D.h"
 
 #include <vector>
 
@@ -20,10 +21,14 @@ void Lab03::Initialize()
     depthImage->Init(1280, 720);
 
     logic_space = { 0, 0, 16.0f, 9.0f };
-    viewport_space = { 0, 0, 1280, 720 };
 
-    // TODO(student): Ex. 4
-
+    viewport_space = { 0, 0, 640, 360 };
+    DrawShapes();
+    viewport_space = { 640, 0, 640, 360 };
+    DrawShapes();
+    viewport_space = { 0, 360, 640, 360 };
+    DrawShapes();
+    viewport_space = { 640, 360, 640, 360 };
     DrawShapes();
 }
 
@@ -57,9 +62,9 @@ void Lab03::DrawShapes()
     // which halves the scale of the square. Apply the
     // transformation from the bottom-left corner of the square
     {
-        glm::mat3 transformation = glm::mat4(1.0f);
-        transformation *= viewPortTransformation;
+        glm::mat3 transformation = viewPortTransformation;
         transformation *= transform2D::Translate(4, 6);
+        transformation *= transform2D::Scale(0.5f, 0.5f);
 
         Rasterize(vertices, indices, transformation);
     }
@@ -68,9 +73,9 @@ void Lab03::DrawShapes()
     // which doubles the scale of the square. Apply the
     // transformation from the bottom-left corner of the square
     {
-        glm::mat3 transformation = glm::mat4(1.0f);
-        transformation *= viewPortTransformation;
+        glm::mat3 transformation = viewPortTransformation;
         transformation *= transform2D::Translate(7, 6);
+        transformation *= transform2D::Scale(2.0f, 2.0f);
 
         Rasterize(vertices, indices, transformation);
     }
@@ -78,9 +83,9 @@ void Lab03::DrawShapes()
     // TODO(student): Apply a 45 degree rotation transformation
     // to the lower-left corner of the square
     {
-        glm::mat3 transformation = glm::mat4(1.0f);
-        transformation *= viewPortTransformation;
+        glm::mat3 transformation = viewPortTransformation;
         transformation *= transform2D::Translate(10, 6);
+        transformation *= transform2D::Rotate(glm::pi<float>()/4);
 
         Rasterize(vertices, indices, transformation);
     }
@@ -90,9 +95,10 @@ void Lab03::DrawShapes()
     // and a rotation transformation of 45 degrees. Apply both
     // transformations to the lower left corner of the square.
     {
-        glm::mat3 transformation = glm::mat4(1.0f);
-        transformation *= viewPortTransformation;
+        glm::mat3 transformation = viewPortTransformation;
         transformation *= transform2D::Translate(13, 6);
+        transformation *= transform2D::Rotate(glm::pi<float>()/4);
+        transformation *= transform2D::Scale(1.0f, 2.0f);
 
         Rasterize(vertices, indices, transformation);
     }
@@ -112,6 +118,9 @@ void Lab03::DrawShapes()
         glm::mat3 transformation = glm::mat4(1.0f);
         transformation *= viewPortTransformation;
         transformation *= transform2D::Translate(4, 2);
+        transformation *= transform2D::Translate(0.5f, 0.5f);
+        transformation *= transform2D::Scale(0.5f, 0.5f);
+        transformation *= transform2D::Translate(-0.5f, -0.5f);
 
         Rasterize(vertices, indices, transformation);
     }
@@ -123,6 +132,9 @@ void Lab03::DrawShapes()
         glm::mat3 transformation = glm::mat4(1.0f);
         transformation *= viewPortTransformation;
         transformation *= transform2D::Translate(7, 2);
+        transformation *= transform2D::Translate(0.5f, 0.5f);
+        transformation *= transform2D::Scale(2.0f, 2.0f);
+        transformation *= transform2D::Translate(-0.5f, -0.5f);
 
         Rasterize(vertices, indices, transformation);
     }
@@ -133,6 +145,9 @@ void Lab03::DrawShapes()
         glm::mat3 transformation = glm::mat4(1.0f);
         transformation *= viewPortTransformation;
         transformation *= transform2D::Translate(10, 2);
+        transformation *= transform2D::Translate(0.5f, 0.5f);
+        transformation *= transform2D::Rotate(glm::pi<float>()/4);
+        transformation *= transform2D::Translate(-0.5f, -0.5f);
 
         Rasterize(vertices, indices, transformation);
     }
@@ -145,6 +160,10 @@ void Lab03::DrawShapes()
         glm::mat3 transformation = glm::mat4(1.0f);
         transformation *= viewPortTransformation;
         transformation *= transform2D::Translate(13, 2);
+        transformation *= transform2D::Translate(0.5f, 0.5f);
+        transformation *= transform2D::Rotate(glm::pi<float>()/4);
+        transformation *= transform2D::Scale(1.0f, 2.0f);
+        transformation *= transform2D::Translate(-0.5f, -0.5f);
 
         Rasterize(vertices, indices, transformation);
     }

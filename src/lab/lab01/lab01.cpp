@@ -1,4 +1,6 @@
 #include "lab/lab01/lab01.h"
+#include "glm/ext/quaternion_trigonometric.hpp"
+#include "glm/ext/scalar_constants.hpp"
 
 #include <vector>
 
@@ -38,6 +40,11 @@ void Lab01::Exercise1()
 
         RenderVector(v1, glm::vec3(1, 0, 0), "v1");
         RenderVector(v2, glm::vec3(0, 1, 0), "v2");
+
+        RenderVector(v1+v2, glm::vec3(0, 0, 1), "v12");
+
+        RenderVector(v1, glm::vec3(1, 0, 0), "v1", v2);
+        RenderVector(v2, glm::vec3(0, 1, 0), "v2", v1);
     }
 }
 
@@ -55,6 +62,8 @@ void Lab01::Exercise2()
 
             RenderPoint(p1, glm::vec3(1, 0, 0), "P1");
             RenderPoint(p2, glm::vec3(0, 0, 1), "P2");
+
+            RenderVector(p1-p2, glm::vec3(1, 0, 1), "v21", p2);
         }
 
         {
@@ -63,6 +72,8 @@ void Lab01::Exercise2()
 
             RenderPoint(p3, glm::vec3(1, 0, 0), "P3");
             RenderPoint(p4, glm::vec3(0, 0, 1), "P4");
+
+            RenderVector(p3-p4, glm::vec3(1, 0, 1), "v43", p4);
         }
 
         {
@@ -71,6 +82,8 @@ void Lab01::Exercise2()
 
             RenderPoint(p5, glm::vec3(1, 0, 0), "P5");
             RenderPoint(p6, glm::vec3(0, 0, 1), "P6");
+
+            RenderVector(p6-p5, glm::vec3(1, 0, 1), "v56", p5);
         }
 
         {
@@ -79,6 +92,8 @@ void Lab01::Exercise2()
 
             RenderPoint(p7, glm::vec3(1, 0, 0), "P7");
             RenderPoint(p8, glm::vec3(0, 0, 1), "P8");
+
+            RenderVector(p7-p8, glm::vec3(1, 0, 1), "v87", p8);
         }
     }
 }
@@ -102,6 +117,12 @@ void Lab01::Exercise3()
         RenderVector(v3, glm::vec3(0, 1, 1), "v3");
         RenderVector(v4, glm::vec3(0, 0, 1), "v4");
         RenderVector(v5, glm::vec3(1, 0, 1), "v5");
+
+        RenderVector(glm::normalize(v1), glm::vec3(0, 0, 0), "");
+        RenderVector(glm::normalize(v2), glm::vec3(0, 0, 0), "");
+        RenderVector(glm::normalize(v3), glm::vec3(0, 0, 0), "");
+        RenderVector(glm::normalize(v4), glm::vec3(0, 0, 0), "");
+        RenderVector(glm::normalize(v5), glm::vec3(0, 0, 0), "");
     }
 }
 
@@ -118,6 +139,9 @@ void Lab01::Exercise4()
 
         RenderVector(v1, glm::vec3(1, 0, 0), "v1");
         RenderVector(v2, glm::vec3(0, 1, 0), "v2");
+
+        RenderArc(glm::atan2(v1.y, v1.x), glm::acos(glm::dot(v1, v2)/(glm::length(v1)*glm::length(v2))), glm::vec3(0, 0, 1));
+        RenderArc(glm::atan2(v1.y, v1.x), glm::acos(glm::dot(v1, v2)/(glm::length(v1)*glm::length(v2)))-2.0f*glm::pi<float>(), glm::vec3(1, 0, 0), 1.0f);
     }
 }
 
@@ -139,6 +163,8 @@ void Lab01::Exercise5()
             RenderPoint(p1, glm::vec3(1, 0, 0), "P1");
             RenderPoint(p2, glm::vec3(0, 0, 1), "P2");
             RenderPoint(p3, glm::vec3(0, 1, 0), "P3");
+
+            RenderText((p1+p2+p3)/3.0f, std::to_string(glm::abs((p2.x-p1.x)*(p3.y-p2.y) - (p2.y-p1.y)*(p3.x-p2.x))/2), glm::vec3(0, 0, 0));
         }
 
         {
@@ -151,6 +177,8 @@ void Lab01::Exercise5()
             RenderPoint(p1, glm::vec3(1, 0, 0), "P1");
             RenderPoint(p2, glm::vec3(0, 0, 1), "P2");
             RenderPoint(p3, glm::vec3(0, 1, 0), "P3");
+
+            RenderText((p1+p2+p3)/3.0f, std::to_string(glm::abs((p2.x-p1.x)*(p3.y-p2.y) - (p2.y-p1.y)*(p3.x-p2.x))/2), glm::vec3(0, 0, 0));
         }
 
         {
@@ -163,6 +191,8 @@ void Lab01::Exercise5()
             RenderPoint(p1, glm::vec3(1, 0, 0), "P1");
             RenderPoint(p2, glm::vec3(0, 0, 1), "P2");
             RenderPoint(p3, glm::vec3(0, 1, 0), "P3");
+
+            RenderText((p1+p2+p3)/3.0f, std::to_string(glm::abs((p2.x-p1.x)*(p3.y-p2.y) - (p2.y-p1.y)*(p3.x-p2.x))/2), glm::vec3(0, 0, 0));
         }
     }
 }
@@ -178,6 +208,12 @@ void Lab01::Exercise6()
         glm::vec2 p1(-4, 3);
         glm::vec2 p2(6, 2);
         glm::vec2 p3(1, -4);
+
+        const float EPSILON = 0.01f;
+
+        glm::vec2 p12 = p2-p1;
+        glm::vec2 p23 = p3-p2;
+        glm::vec2 p31 = p1-p3;
 
         RenderTriangle(p1, p2, p3, glm::vec3(0, 1, 1));
 
@@ -195,7 +231,14 @@ void Lab01::Exercise6()
         };
 
         for (const glm::vec2 &check_point : check_points) {
-            RenderPoint(check_point, glm::vec3(0), "?");
+            float bari_c = p12.x * (check_point.y - p2.y) - p12.y * (check_point.x - p2.x);
+            float bari_b = p23.x * (check_point.y - p3.y) - p23.y * (check_point.x - p3.x);
+            float bari_a = p31.x * (check_point.y - p1.y) - p31.y * (check_point.x - p1.x);
+
+            if((bari_a < EPSILON && bari_b < EPSILON && bari_c < EPSILON) || (bari_a > -EPSILON && bari_b > -EPSILON && bari_c > -EPSILON))
+                RenderPoint(check_point, glm::vec3(0, 1, 0), "in");
+            else
+                RenderPoint(check_point, glm::vec3(1, 0, 0), "out");
         }
     }
 }
