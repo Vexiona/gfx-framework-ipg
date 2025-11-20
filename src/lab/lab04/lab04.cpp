@@ -36,7 +36,7 @@ void Lab04::Initialize()
     image->Init(1280, 720, 3 /* channels */);
     depthImage->Init(1280, 720);
 
-    DrawCube();
+    DrawTet();
 }
 
 void Lab04::DrawCube()
@@ -67,6 +67,40 @@ void Lab04::DrawCube()
         1, 4, 5,
         2, 6, 4,
         0, 2, 4
+    };
+
+    {
+        glm::mat4 transformation = glm::mat3(1.0f);
+        transformation *= transform3D::Perspective(glm::radians(60.0f), 16.0f/9, 0.1f, 100.0f);
+        transformation *= transform3D::View(camera_position, camera_forward, camera_right, camera_up);
+        transformation *= ModelTransformation();
+
+        Rasterize(vertices, indices, transformation, viewport_space, cull_face_option);
+    }
+}
+
+void Lab04::DrawTet()
+{
+    vector<VertexFormat> vertices
+    {
+        // VertexFormat(glm::vec3(-0.5, -0.5, 0.5), glm::vec3(0, 0, 0)),
+        // VertexFormat(glm::vec3(0.5, -0.5, 0.5), glm::vec3(1, 0, 0)),
+        // VertexFormat(glm::vec3(-0.5, 0.5, 0.5), glm::vec3(0.5, glm::sqrt(3)/2, 0)),
+        // VertexFormat(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, glm::sqrt(3)/6, glm::sqrt(2/3)))
+
+
+        VertexFormat(glm::vec3(1, 1, 1), glm::vec3(1, 0, 0)),
+        VertexFormat(glm::vec3(1, -1, -1), glm::vec3(0, 1, 0)),
+        VertexFormat(glm::vec3(-1, 1, -1), glm::vec3(0, 0, 1)),
+        VertexFormat(glm::vec3(-1, -1, 1), glm::vec3(0, 1, 1))
+    };
+
+    vector<unsigned int> indices
+    {
+        0, 1, 2,    // indices for first triangle
+        0, 2, 3,    // indices for second triangle
+        0, 3, 1,
+        1, 2, 3
     };
 
     {
@@ -137,7 +171,7 @@ glm::vec3 Lab04::ComputeClipSpacePosition(
 
     // TODO(student): Ex. 3
 
-    glm::vec3 clip_space_pos = glm::vec3(homogenous_coordinate);
+    glm::vec3 clip_space_pos = glm::vec3(homogenous_coordinate.x/homogenous_coordinate.w, homogenous_coordinate.y/homogenous_coordinate.w, homogenous_coordinate.z/homogenous_coordinate.w);
 
     return clip_space_pos;
 }
@@ -177,7 +211,7 @@ TRIANGLE_FACE Lab04::DetermineTriangleFace(
     // If the sign is positive, the front face of the triangle is displayed.
     // If the sign is negative, the back face of the triangle is displayed.
 
-    return TRIANGLE_FACE::NONE;
+    return cross_produt.z>0 ? TRIANGLE_FACE::FRONT : TRIANGLE_FACE::BACK;
 }
 
 void Lab04::OnInputUpdate(float deltaTime, int mods)
@@ -211,7 +245,7 @@ void Lab04::OnInputUpdate(float deltaTime, int mods)
         image->Clear(glm::vec3(0));
         depthImage->Clear();
 
-        DrawCube();
+        DrawTet();
 
         image->UpdateInternalData();
     }
@@ -226,7 +260,7 @@ void Lab04::OnKeyPress(int key, int mods)
         image->Clear(glm::vec3(0));
         depthImage->Clear();
 
-        DrawCube();
+        DrawTet();
 
         image->UpdateInternalData();
     }

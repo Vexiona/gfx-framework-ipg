@@ -34,6 +34,7 @@ namespace lab
 
      private:
         void DrawCube();
+        void DrawTet();
         glm::mat4 ModelTransformation();
         void Rasterize(
             const std::vector<VertexFormat> &vertices,

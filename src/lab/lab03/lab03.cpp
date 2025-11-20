@@ -34,6 +34,39 @@ void Lab03::Initialize()
 
 void Lab03::DrawShapes()
 {
+    vector<VertexFormat> verticesiso
+    {
+        VertexFormat(glm::vec3(-0.2, 0,  0.5), glm::vec3(1, 0, 0)),
+        VertexFormat(glm::vec3(0.2, 0,  0.5), glm::vec3(1, 0, 0)),
+        VertexFormat(glm::vec3(0, 1,  0.5), glm::vec3(0, 0, 1)),
+    };
+    vector<unsigned int> indicesiso
+    {
+        0, 1, 2,    // indices for first triangle
+    };
+    
+    glm::mat3 viewPortTransformation = transform2D::Viewport(logic_space, viewport_space);
+
+
+
+    for(int i=0; i<8; i++)
+    {
+        glm::mat3 transformation = glm::mat3(1.0f);
+        transformation *= viewPortTransformation;
+        transformation *= transform2D::Translate(0, 0);
+        transformation *= transform2D::Rotate(i * glm::pi<float>()/4);
+
+        Rasterize(verticesiso, indicesiso, transformation);
+    }
+    
+
+
+
+
+
+
+
+
     vector<VertexFormat> vertices
     {
         VertexFormat(glm::vec3(0, 0,  0.5), glm::vec3(1, 0, 0)),
@@ -47,8 +80,6 @@ void Lab03::DrawShapes()
         0, 1, 2,    // indices for first triangle
         1, 2, 3,    // indices for second triangle
     };
-
-    glm::mat3 viewPortTransformation = transform2D::Viewport(logic_space, viewport_space);
 
     {
         glm::mat3 transformation = glm::mat3(1.0f);
