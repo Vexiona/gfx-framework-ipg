@@ -5,7 +5,9 @@
 
 struct VertexFormat
 {
-    VertexFormat(glm::vec3 position,
+    constexpr VertexFormat() {}
+
+    constexpr VertexFormat(glm::vec3 position,
         glm::vec3 color = glm::vec3(1),
         glm::vec3 normal = glm::vec3(0, 1, 0),
         glm::vec2 text_coord = glm::vec2(0))

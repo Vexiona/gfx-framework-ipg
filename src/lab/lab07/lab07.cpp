@@ -1,4 +1,6 @@
 #include "lab/lab07/lab07.h"
+#include "glm/gtc/type_ptr.hpp"
+#include "utils/gl_utils.h"
 
 #include <vector>
 #include <string>
@@ -67,6 +69,15 @@ void Lab07::Init()
         shader->CreateAndLink();
         shaders[shader->GetName()] = shader;
     }
+
+    {
+        Shader *shader = new Shader("BonusShader");
+        shader->AddShader(PATH_JOIN(window->props.selfDir, "src/lab", "lab07", "shaders", "VertexBonus.glsl"), GL_VERTEX_SHADER);
+        shader->AddShader(PATH_JOIN(window->props.selfDir, "src/lab", "lab07", "shaders", "FragmentBonus.glsl"), GL_FRAGMENT_SHADER);
+        shader->CreateAndLink();
+        shaders[shader->GetName()] = shader;
+    }
+
 
     // Light & material properties
     {
@@ -159,6 +170,14 @@ void Lab07::Update(float deltaTimeSeconds)
         RenderSimpleMesh(meshes["plane"], shaders["LabShader"], model, glm::vec3(1));
     }
 
+    // Bonus cube
+    {
+        glm::mat4 model = glm::mat4(1);
+        model = glm::translate(model, glm::vec3(0, 2.5f, 0));
+        model = glm::scale(model, glm::vec3(1.0f));
+        RenderSimpleMesh(meshes["box"], shaders["BonusShader"], model, glm::vec3(1, 1, 0));
+    }
+
     // Render the point lights in the scene
     for (int i = 0; i < 10; i++)
     {
@@ -200,15 +219,27 @@ void Lab07::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & model
     // sources, directions of the spot light sources and angles for the
     // spot light sources) in attributes of uniform type. Use the attributes
     // defined in "lab07.h". Send 10 entities of each.
+    glUniform1f(glGetUniformLocation(shader->program, "point_lights_count"), 10);
+    glUniform3fv(glGetUniformLocation(shader->program, "point_light_positions"), 10, glm::value_ptr(point_light_positions[0]));
+    glUniform3fv(glGetUniformLocation(shader->program, "point_light_colors"), 10, glm::value_ptr(point_light_colors[0]));
+    glUniform3fv(glGetUniformLocation(shader->program, "spot_light_positions"), 10, glm::value_ptr(spot_light_positions[0]));
+    glUniform3fv(glGetUniformLocation(shader->program, "spot_light_colors"), 10, glm::value_ptr(spot_light_colors[0]));
+    glUniform3fv(glGetUniformLocation(shader->program, "spot_light_directions"), 10, glm::value_ptr(spot_light_directions[0]));
+    glUniform1fv(glGetUniformLocation(shader->program, "spot_light_angles"), 10, spot_light_angles);
 
     glm::vec3 eye_position = GetSceneCamera()->m_transform->GetWorldPosition();
     // TODO(student): Set eye position (camera position) uniform
+    glUniform3fv(glGetUniformLocation(shader->program, "eye_position"), 1, glm::value_ptr(eye_position));
 
     glm::vec3 material_ka = object_color;
     glm::vec3 material_kd = object_color;
     glm::vec3 material_ks = object_color;
     int material_shininess = 30;
     // TODO(student): Set material property uniforms (shininess, ka, kd, ks)
+    glUniform3fv(glGetUniformLocation(shader->program, "material_ka"), 1, glm::value_ptr(material_ka));
+    glUniform3fv(glGetUniformLocation(shader->program, "material_kd"), 1, glm::value_ptr(material_kd));
+    glUniform3fv(glGetUniformLocation(shader->program, "material_ks"), 1, glm::value_ptr(material_ks));
+    glUniform1i(glGetUniformLocation(shader->program, "material_shininess"), material_shininess);
 
     // Send the model matrix uniform
     GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
@@ -224,6 +255,9 @@ void Lab07::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & model
     int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
     glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projection));
 
+    // Bonus
+    glUniform1f(glGetUniformLocation(shader->program, "animationThreshold"), animationCircleThreshold);
+
     // Draw the object
     glBindVertexArray(mesh->GetBuffers()->m_VAO);
     glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
@@ -238,7 +272,8 @@ void Lab07::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & model
 
 void Lab07::OnInputUpdate(float deltaTime, int mods)
 {
-    if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
+    if(window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT)) return;
+    if(!window->MouseHold(GLFW_MOUSE_BUTTON_LEFT))
     {
         const float speed = 2;
 
@@ -265,7 +300,7 @@ void Lab07::OnInputUpdate(float deltaTime, int mods)
         if (window->KeyHold(GLFW_KEY_E)) (*light_position) += up * deltaTime * speed;
         if (window->KeyHold(GLFW_KEY_Q)) (*light_position) -= up * deltaTime * speed;
     }
-
+    else
     {
         glm::vec3 &light_direction = spot_light_directions[9];
         float &angle = spot_light_angles[9];
@@ -273,8 +308,18 @@ void Lab07::OnInputUpdate(float deltaTime, int mods)
         // light source from the keyboard. From the keys, implement the possibility
         // of rotating the lighting direction relative to the OX and OZ axes, in both
         // directions and the possibility of increasing and decreasing the angle.
-
+        if(window->KeyHold(GLFW_KEY_W)) light_direction = glm::mat3(glm::rotate(glm::mat4(1), deltaTime, glm::vec3(1, 0, 0))) * light_direction;
+        if(window->KeyHold(GLFW_KEY_S)) light_direction = glm::mat3(glm::rotate(glm::mat4(1), -deltaTime, glm::vec3(1, 0, 0))) * light_direction;
+        if(window->KeyHold(GLFW_KEY_A)) light_direction = glm::mat3(glm::rotate(glm::mat4(1), deltaTime, glm::vec3(0, 0, 1))) * light_direction;
+        if(window->KeyHold(GLFW_KEY_D)) light_direction = glm::mat3(glm::rotate(glm::mat4(1), -deltaTime, glm::vec3(0, 0, 1))) * light_direction;
+        if(window->KeyHold(GLFW_KEY_Q)) angle += deltaTime;
+        if(window->KeyHold(GLFW_KEY_E)) angle -= deltaTime;
     }
+
+    // bonus animation
+    static float animationTime = 0;
+    animationTime = std::fmod(animationTime + deltaTime / 3.0, 2.0/3.0);
+    animationCircleThreshold = animationTime <= 1.0/3.0 ? animationTime + 1.0/9.0 : 7.0/9.0 - animationTime;
 }
 
 

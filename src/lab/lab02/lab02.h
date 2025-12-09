@@ -17,7 +17,7 @@ namespace lab
 
      private:
         void Rasterize(
-            const std::vector<VertexFormat> &vertices,
-            const std::vector<unsigned int> &indices);
+            const std::span<VertexFormat const> &vertices,
+            const std::span<std::size_t const> &indices);
     };
 }   // namespace lab

@@ -4,6 +4,7 @@
 // TODO(student): Get color value from vertex shader
 in vec3 world_position;
 in vec3 world_normal;
+in vec2 texture_coord;
 
 // Uniforms for light properties
 uniform float point_lights_count;
@@ -18,6 +19,8 @@ uniform vec3 material_ka;
 uniform vec3 material_kd;
 uniform vec3 material_ks;
 uniform int material_shininess;
+// Uniform for bonus animation
+uniform float animationThreshold;
 
 // Output
 layout(location = 0) out vec4 out_color;
@@ -25,6 +28,10 @@ layout(location = 0) out vec4 out_color;
 // Globals
 vec3 N;
 vec3 V;
+// Globals for bonus
+vec3 bonus_material_ka;
+vec3 bonus_material_kd;
+vec3 bonus_material_ks;
 
 vec3 ComputePhongIllumination(vec3 light_position)
 {
@@ -32,14 +39,14 @@ vec3 ComputePhongIllumination(vec3 light_position)
     vec3 R = reflect(-L, N);
 
     // TODO(student): Compute the diffuse component of the Lambert illumination model
-    vec3 diffuse_component = material_kd * max(dot(N, L), 0);
+    vec3 diffuse_component = bonus_material_kd * max(dot(N, L), 0);
 
     // TODO(student): Compute the specular component of the Phong illumination model
     vec3 specular_component = vec3(0);
 
     if (length(diffuse_component) > 0)
     {
-        specular_component = material_ks * pow(max(dot(V, R), 0), material_shininess);
+        specular_component = bonus_material_ks * pow(max(dot(V, R), 0), material_shininess);
     }
 
     // TODO(student): Compute the final illumination as the sum of the diffuse and specular components
@@ -114,7 +121,7 @@ vec3 ComputeAmbientComponent()
     vec3 global_ambient_color = vec3(0.25f);
 
     // TODO(student): Compute the ambient component of global illumination
-    vec3 ambient_component = material_ka * global_ambient_color;
+    vec3 ambient_component = bonus_material_ka * global_ambient_color;
 
     return ambient_component;
 }
@@ -123,6 +130,20 @@ void main()
 {
     N = normalize(world_normal);
     V = normalize(eye_position - world_position);
+
+    vec2 center_offset = texture_coord - vec2(0.5);
+    if(dot(center_offset, center_offset) > animationThreshold)
+    {
+        bonus_material_ka = material_ka;
+        bonus_material_kd = material_kd;
+        bonus_material_ks = material_ks;
+    }
+    else
+    {
+        bonus_material_ka = vec3(1) - material_ka;
+        bonus_material_kd = vec3(1) - material_kd;
+        bonus_material_ks = vec3(1) - material_ks;
+    }
 
     vec3 illumination = ComputePointLightSourcesIllumination()
         + ComputeSpotLightSourcesIllumination ()

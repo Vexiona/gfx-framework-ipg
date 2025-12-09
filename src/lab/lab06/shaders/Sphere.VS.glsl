@@ -18,16 +18,20 @@ uniform float Time;
 // TODO(student): Output values to fragment shader
 out vec3 color;
 
+vec3 rand(vec3 co)
+{
+    return fract(sin(vec3(
+        dot(co, vec3(12.989, 78.233, 45.164)),
+        dot(co, vec3(93.989, 67.345, 12.345)),
+        dot(co, vec3(45.332, 83.155, 24.623))
+    )) * 43758.5453) - 0.5;
+}
+
 void main()
 {
     // TODO(student): Send output to fragment shader
-    float sine = abs(sin(Time));
-    color = sine * v_color;
+    color = v_position * 1.7;
 
     // TODO(student): Compute gl_Position
-    mat4 S = mat4(1.0);
-    S[0][0] = sine;
-    S[1][1] = sine;
-    S[2][2] = sine;
-    gl_Position = Projection * View * Model * S * vec4(v_position, 1.0);
+    gl_Position = Projection * View * Model * vec4(v_position + rand(v_position) * (sin(Time + rand(v_position).x) * 0.3), 1.0);
 }

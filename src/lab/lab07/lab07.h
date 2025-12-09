@@ -40,5 +40,7 @@ namespace lab
         int controlled_light_source_index;
         glm::vec3 controlled_light_position;
         float angle;
+
+        float animationCircleThreshold;
     };
 }   // namespace lab

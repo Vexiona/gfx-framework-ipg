@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.1)
 
 
 # Set root directory, if needed
@@ -16,8 +16,9 @@ project(${target_name} C CXX)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 # Include helper scripts
@@ -39,6 +40,17 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     find_package(spdlog REQUIRED)
     find_package(Freetype REQUIRED)
 endif()
+
+# fetch gcem
+include(FetchContent)
+
+FetchContent_Declare(
+  gcem
+  GIT_REPOSITORY https://github.com/aethernetio/gcem
+  GIT_TAG        f182c6f3d6e0742eb9eef4fff506a3928d4c5107
+)
+
+FetchContent_MakeAvailable(gcem)
 
 
 # Set options
@@ -112,7 +124,6 @@ set(GFXF_INCLUDE_DIRS_PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src
 )
 
-
 # Add the executable
 custom_add_executable(${target_name}
     ${GFXF_SOURCES}
@@ -154,6 +165,7 @@ endif()
 target_link_libraries(${target_name} PRIVATE
     ${OPENGL_LIBRARIES}
 )
+target_link_libraries(${target_name} PRIVATE gcem)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_link_libraries(${target_name} PRIVATE

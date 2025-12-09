@@ -23,10 +23,14 @@ void main()
 	//   - The coordinate of the vertex in clip space, transformed
 	//     from world space, as received from the vertex shader
 	//   - Texture coordinate received from the vertex shader.
-	for(int i=0; i<3; i++)
+	for(int j=-2; j<3; j++)
 	{
-		gl_Position = Projection * View  * gl_in[i].gl_Position;
-		texture_coord = v_texture_coord[i];
-		EmitVertex();
+		for(int i=0; i<3; i++)
+		{
+			gl_Position = Projection * View  * (gl_in[i].gl_Position + 8.0 * j * vec4(1, 0, 0, 0));
+			texture_coord = v_texture_coord[i];
+			EmitVertex();
+		}
+		EndPrimitive();
 	}
 }

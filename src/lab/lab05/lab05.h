@@ -40,5 +40,10 @@ namespace lab
         transform2D::ViewportSpace viewport_space;
         glm::vec3 color;
         GLenum cullFace;
+
+        glm::mat4 cubeOneAnimationMatrix = glm::mat4(1);
+        glm::mat4 cubeTwoAnimationMatrix = glm::mat4(1);
+        glm::mat4 cubeThreeAnimationMatrix = glm::mat4(1);
+        glm::mat4 cubePlayerMoveMatrix = glm::mat4(1);
     };
 }   // namespace lab

@@ -1,4 +1,5 @@
 #include "lab/lab10/lab10.h"
+#include "core/engine.h"
 
 #include <vector>
 #include <iostream>
@@ -65,6 +66,10 @@ void Lab10::Init()
     // certain type of shader for several programs.
     LoadShader("LabShader", "WorldSpace", "Texture", "LabShader");
     LoadShader("Triangle", "WorldSpace", "Color", "Triangle");
+    LoadShader("MirrorImage", "WorldSpace", "Texture", "MirrorImage");
+    LoadShader("Explode", "WorldSpace", "Texture", "Explode");
+    LoadShader("Normals", "WorldSpace", "Normals", "Normals");
+    LoadShader("Gravity", "WorldSpace", "Texture", "Gravity");
 }
 
 void Lab10::FrameStart()
@@ -78,28 +83,52 @@ void Lab10::Update(float deltaTimeSeconds)
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-3, 0, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01));
-        RenderSimpleMesh(meshes["archer"], shaders["LabShader"], modelMatrix, mapTextures["archer"]);
+        RenderSimpleMesh(meshes["archer"], shaders["MirrorImage"], modelMatrix, mapTextures["archer"]);
     }
 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-2, 0, 2));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01));
-        RenderSimpleMesh(meshes["archer"], shaders["LabShader"], modelMatrix, mapTextures["archer"]);
+        RenderSimpleMesh(meshes["archer"], shaders["MirrorImage"], modelMatrix, mapTextures["archer"]);
     }
 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(2, 0, 2));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01));
-        RenderSimpleMesh(meshes["archer"], shaders["LabShader"], modelMatrix, mapTextures["archer"]);
+        RenderSimpleMesh(meshes["archer"], shaders["MirrorImage"], modelMatrix, mapTextures["archer"]);
     }
 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 1, 1));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5));
-        RenderSimpleMesh(meshes["triangle"], shaders["LabShader"], modelMatrix);
+        RenderSimpleMesh(meshes["triangle"], shaders["Triangle"], modelMatrix);
+    }
+
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, -3));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01));
+        RenderSimpleMesh(meshes["archer"], shaders["Explode"], modelMatrix);
+    }
+
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(4, 0, -3));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01));
+        RenderSimpleMesh(meshes["archer"], shaders["LabShader"], modelMatrix, mapTextures["archer"]);
+        meshes["archer"]->SetDrawMode(GL_POINTS);
+        RenderSimpleMesh(meshes["archer"], shaders["Normals"], modelMatrix);
+        meshes["archer"]->SetDrawMode(GL_TRIANGLES);
+    }
+
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(-4, 0, -3));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01));
+        RenderSimpleMesh(meshes["archer"], shaders["Gravity"], modelMatrix);
     }
 }
 
@@ -133,6 +162,7 @@ void Lab10::RenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelM
     glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     // TODO(student): Set any other shader uniforms that you need
+    glUniform1d(glGetUniformLocation(shader->program, "AnimationTime"), std::fmod(Engine::GetElapsedTime(), 2));
 
     if (texture) {
         glActiveTexture(GL_TEXTURE0);

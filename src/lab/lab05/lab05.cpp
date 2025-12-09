@@ -1,10 +1,13 @@
 #include "lab/lab05/lab05.h"
 
+#include <cfloat>
 #include <vector>
 #include <iostream>
+#include <random>
 
 #include "components/transform.h"
 #include "core/engine.h"
+#include "lab/lab04/transform3D.h"
 #include "utils/gl_utils.h"
 
 #include "lab/lab05/transform3D.h"
@@ -77,16 +80,24 @@ void Lab05::CreateMesh(const char *name, const std::vector<VertexFormat> &vertic
 {
     unsigned int VAO = 0;
     // TODO(student): Create the VAO and bind it
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
 
     unsigned int VBO = 0;
     // TODO(student): Create the VBO and bind it
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
     // TODO(student): Send vertices data into the VBO buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices[0]) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
     unsigned int IBO = 0;
     // TODO(student): Create the IBO and bind it
+    glGenBuffers(1, &IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
     // TODO(student): Send indices data into the IBO buffer
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices[0]) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
     // ========================================================================
     // This section demonstrates how the GPU vertex shader program
@@ -113,6 +124,7 @@ void Lab05::CreateMesh(const char *name, const std::vector<VertexFormat> &vertic
     // ========================================================================
 
     // TODO(student): Unbind the VAO
+    glBindVertexArray(0);
 
     // Check for OpenGL errors
     if (GetOpenGLError() == GL_INVALID_OPERATION)
@@ -138,6 +150,7 @@ void Lab05::Update(float deltaTimeSeconds)
     glm::ivec2 resolution = window->GetResolution();
 
     // TODO(student): Set the screen cleaning color. Use the 'color' attribute.
+    glClearColor(color.r, color.g, color.b, 1);
 
     // Clears the color buffer (using the previously set color) and depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -147,14 +160,22 @@ void Lab05::Update(float deltaTimeSeconds)
     // TODO(student): Draw the objects 4 times in different viewports.
     // Send the 4 cameras with predefined viewing positions and directions to the drawing.
 
-    viewport_space = transform2D::ViewportSpace(0, 0, resolution.x, resolution.y);
+    viewport_space = transform2D::ViewportSpace(0, 0, std::floor(resolution.x * 0.75), std::floor(resolution.y * 0.5));
     DrawObjects(GetSceneCamera(), viewport_space);
 
-    camera->SetPositionAndRotation(glm::vec3(0, 3, -3), glm::quatLookAt(glm::normalize(glm::vec3(0, -3, 3)), glm::vec3(0, 1, 0)));
+    // changed this view for planetary system
+    // camera->SetPositionAndRotation(glm::vec3(3, 3, 3), glm::quatLookAt(glm::normalize(glm::vec3(-3, -3, -3)), glm::vec3(0, 1, 0)));
+    camera->SetPositionAndRotation(glm::vec3(15, 15, 15), glm::quatLookAt(glm::normalize(glm::vec3(-15, -20, -15)), glm::vec3(0, 1, 0)));
+    viewport_space = transform2D::ViewportSpace(0, std::floor(resolution.y * 0.5), std::floor(resolution.x * 0.75), std::floor(resolution.y * 0.5));
+    DrawObjects(camera, viewport_space);
 
-    camera->SetPositionAndRotation(glm::vec3(3, 3, 3), glm::quatLookAt(glm::normalize(glm::vec3(-3, -3, -3)), glm::vec3(0, 1, 0)));
+    camera->SetPositionAndRotation(glm::vec3(0, 3, -3), glm::quatLookAt(glm::normalize(glm::vec3(0, -3, 3)), glm::vec3(0, 1, 0)));
+    viewport_space = transform2D::ViewportSpace(std::floor(resolution.x * 0.75), 0, resolution.x - std::floor(resolution.x * 0.75), std::floor(resolution.y * 0.75));
+    DrawObjects(camera, viewport_space);
 
     camera->SetPositionAndRotation(glm::vec3(-3, 3, 3), glm::quatLookAt(glm::normalize(glm::vec3(3, -3, -3)), glm::vec3(0, 1, 0)));
+    viewport_space = transform2D::ViewportSpace(std::floor(resolution.x * 0.75), std::floor(resolution.y * 0.75), resolution.x - std::floor(resolution.x * 0.75), resolution.y - std::floor(resolution.y * 0.75));
+    DrawObjects(camera, viewport_space);
 }
 
 
@@ -177,14 +198,18 @@ void Lab05::DrawObjects(gfxc::Camera *camera, const transform2D::ViewportSpace &
     );
 
     // TODO(student): Enable face culling
+    glEnable(GL_CULL_FACE);
 
     // TODO(student): Set face custom culling. Use the `cullFace` variable.
+    glCullFace(cullFace);
 
     // TODO(student): Set the position and size of the view port based on the
     // information received from the 'viewport_space' parameter.
+    glViewport(viewport_space.x, viewport_space.y, viewport_space.width, viewport_space.height);
 
     glm::mat4 model = glm::mat4(1);
     model *= transform3D::Translate(glm::vec3(-1.5f, 0.5f, 0));
+    model *= cubeOneAnimationMatrix;
     model *= transform3D::RotateOX(glm::radians(45.0f));
     model *= transform3D::RotateOZ(glm::radians(-45.0f));
     model *= transform3D::Scale(glm::vec3(0.75f));
@@ -192,17 +217,31 @@ void Lab05::DrawObjects(gfxc::Camera *camera, const transform2D::ViewportSpace &
 
     model = glm::mat4(1);
     model *= transform3D::Translate(glm::vec3(0, 0.5f, 0));
+    model *= cubeTwoAnimationMatrix;
     model *= transform3D::Scale(glm::vec3(0.75f));
     RenderMesh(meshes["cube"], shaders["VertexColor"], model, view, projection);
 
     model = glm::mat4(1);
     model *= transform3D::Translate(glm::vec3(1.5f, 0.5f, 0));
+    model *= cubeThreeAnimationMatrix;
     model *= transform3D::RotateOX(glm::radians(45.0f));
     model *= transform3D::RotateOZ(glm::radians(45.0f));
     model *= transform3D::Scale(glm::vec3(0.5f));
     RenderMesh(meshes["cube"], shaders["VertexColor"], model, view, projection);
 
+    model = glm::mat4(1);
+    model *= cubePlayerMoveMatrix;
+    model *= transform3D::Scale(glm::vec3(0.5f));
+    RenderMesh(meshes["cube"], shaders["VertexColor"], model, view, projection);
+
+
+    // BEGIN planetary system bonus
+    // model *= 
+    // RenderMesh(meshes["cube"], shaders["VertexColor"], model, view, projection);
+    // END planetary system bonus
+
     // TODO(student): Disable face culling
+    glDisable(GL_CULL_FACE);
 
     DrawCoordinateSystem(view, projection);
 }
@@ -250,7 +289,33 @@ void Lab05::OnInputUpdate(float deltaTime, int mods)
     //
     // Don't change the position of the object when the position
     // of the camera in the scene changes.
+    static float cubeOneTranslate = 0;
+    cubeOneTranslate = std::fmod(cubeOneTranslate + deltaTime * 4, 4);
+    float cubeOneRenderTranslate = cubeOneTranslate <= 2 ? cubeOneTranslate : 4 - cubeOneTranslate;
+    cubeOneAnimationMatrix = transform3D::Translate(glm::vec3(0, cubeOneRenderTranslate, 0));
 
+    static float cubeTwoRotation = 0;
+    cubeTwoRotation = std::fmod(cubeTwoRotation + deltaTime, 2 * glm::pi<float>());
+    cubeTwoAnimationMatrix = transform3D::RotateOY(cubeTwoRotation);
+
+    static float cubeThreeScale = 0;
+    cubeThreeScale = std::fmod(cubeThreeScale + deltaTime * 2, 3);
+    float cubeOneRenderScale = cubeThreeScale <= 1.5 ? cubeThreeScale : 3 - cubeThreeScale;
+    cubeThreeAnimationMatrix = transform3D::Scale(glm::vec3(cubeOneRenderScale + 0.5));
+
+    if(window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT)) return;
+    if(window->KeyHold(GLFW_KEY_W))
+        cubePlayerMoveMatrix *= transform3D::Translate(glm::vec3(0, deltaTime, 0));
+    if(window->KeyHold(GLFW_KEY_A))
+        cubePlayerMoveMatrix *= transform3D::Translate(glm::vec3(-deltaTime, 0, 0));
+    if(window->KeyHold(GLFW_KEY_S))
+        cubePlayerMoveMatrix *= transform3D::Translate(glm::vec3(0, -deltaTime, 0));
+    if(window->KeyHold(GLFW_KEY_D))
+        cubePlayerMoveMatrix *= transform3D::Translate(glm::vec3(deltaTime, 0, 0));
+    if(window->KeyHold(GLFW_KEY_Q))
+        cubePlayerMoveMatrix *= transform3D::Translate(glm::vec3(0, 0, deltaTime));
+    if(window->KeyHold(GLFW_KEY_E))
+        cubePlayerMoveMatrix *= transform3D::Translate(glm::vec3(0, 0, -deltaTime));
 }
 
 
@@ -259,11 +324,20 @@ void Lab05::OnKeyPress(int key, int mods)
     if (key == GLFW_KEY_R) {
         // TODO(student): Change the values of the color components.
 
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+    
+        color = glm::vec3(dis(gen), dis(gen), dis(gen));
     }
 
     // TODO(student): Switch between GL_FRONT and GL_BACK culling.
     // Save the state in `cullFace` variable and apply it in the
     // `Update()` method, NOT here!
+    if (key == GLFW_KEY_F) {
+        // TODO(student): Change the values of the color components.    
+        cullFace = cullFace == GL_FRONT ? GL_BACK : GL_FRONT;
+    }
 }
 
 

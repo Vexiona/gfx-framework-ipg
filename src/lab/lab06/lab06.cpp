@@ -5,6 +5,8 @@
 #include <iostream>
 
 #include "components/transform.h"
+#include "core/engine.h"
+#include "utils/gl_utils.h"
 
 using namespace std;
 using namespace lab;
@@ -76,30 +78,46 @@ void Lab06::Init()
         "src/lab/lab06/shaders/LastTask.VS.glsl",
         "src/lab/lab06/shaders/LastTask.FS.glsl"
     );
+
+    CreateShader("Sphere",
+        "src/lab/lab06/shaders/Sphere.VS.glsl",
+        "src/lab/lab06/shaders/Sphere.FS.glsl"
+    );
 }
 
 void Lab06::CreateShader(const char* name, const char* vertex_shader_path, const char* fragment_shader_path)
 {
     unsigned int vertex_shader_id = 0;
     // TODO(student): Create and compile the vertex shader object
+    vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
 
     const char *vertex_shader_source = GetShaderContent(vertex_shader_path);
 
+    glShaderSource(vertex_shader_id, 1, &vertex_shader_source, 0);
+    glCompileShader(vertex_shader_id);
 
     CheckShaderCompilationError(vertex_shader_id);
 
     unsigned int fragment_shader_id = 0;
     // TODO(student): Create and compile the fragment shader object
+    fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
 
     const char *fragment_shader_source = GetShaderContent(fragment_shader_path);
 
+    glShaderSource(fragment_shader_id, 1, &fragment_shader_source, 0);
+    glCompileShader(fragment_shader_id);
 
     CheckShaderCompilationError(fragment_shader_id);
 
     unsigned int program_id = 0;
     // TODO(student): Create the program, attach the two shader
     // objects and link them.
-
+    program_id = glCreateProgram();
+ 
+    glAttachShader(program_id, vertex_shader_id);
+    glAttachShader(program_id, fragment_shader_id);
+    
+    glLinkProgram(program_id);
 
     CheckShadersLinkingError(program_id);
 
@@ -193,7 +211,7 @@ void Lab06::Update(float deltaTimeSeconds)
         model *= transform3D::Translate(glm::vec3(-2, 0.5f, 0));
         model *= transform3D::RotateOX(glm::radians(60.0f));
         model *= transform3D::RotateOY(glm::radians(60.0f));
-        RenderMesh(meshes["sphere"], shaders["LabShader"], model, GetSceneCamera(), viewport_space);
+        RenderMesh(meshes["sphere"], shaders["Sphere"], model, GetSceneCamera(), viewport_space);
     }
 
     {
@@ -207,7 +225,7 @@ void Lab06::Update(float deltaTimeSeconds)
         glm::mat4 model = glm::mat4(1);
         model *= transform3D::Translate(glm::vec3(2, 0.5f, 0));
         model *= transform3D::RotateOX(glm::radians(60.0f));
-        RenderMesh(meshes["cube"], shaders["LabShader"], model, GetSceneCamera(), viewport_space);
+        RenderMesh(meshes["cube"], shaders["LastTask"], model, GetSceneCamera(), viewport_space);
     }
 }
 
@@ -228,10 +246,13 @@ void Lab06::RenderMesh(Mesh *mesh, Shader *shader, const glm::mat4 & model,
     glUseProgram(shader->program);
 
     // TODO(student): Get shader location for uniform mat4 "Model"
+    GLint locationModel = glGetUniformLocation(shader->program, "Model");
 
     // TODO(student): Set shader uniform "Model" to modelMatrix
+    glUniformMatrix4fv(locationModel, 1, GL_FALSE, glm::value_ptr(model));
 
     // TODO(student): Get shader location for uniform mat4 "View"
+    GLint locationView = glGetUniformLocation(shader->program, "View");
 
     // TODO(student): Set shader uniform "View" to viewMatrix
     glm::mat4 view = transform3D::View(
@@ -240,17 +261,22 @@ void Lab06::RenderMesh(Mesh *mesh, Shader *shader, const glm::mat4 & model,
         camera->m_transform->GetLocalOXVector(),
         camera->m_transform->GetLocalOYVector()
     );
+    glUniformMatrix4fv(locationView, 1, GL_FALSE, glm::value_ptr(view));
 
     // TODO(student): Get shader location for uniform mat4 "Projection"
+    GLint locationProjection = glGetUniformLocation(shader->program, "Projection");
 
     // TODO(student): Set shader uniform "Projection" to projectionMatrix
     glm::mat4 projection = transform3D::Perspective(
         glm::radians(60.0f), (float)viewport_space.width / viewport_space.height, 0.1f, 100.0f
     );
+    glUniformMatrix4fv(locationProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
     // TODO(student): Send the application time, obtained by
     // calling Engine::GetElapsedTime(), in the form of a
     // uniform type attribute to the shader
+    GLint locationTime = glGetUniformLocation(shader->program, "Time");
+    glUniform1f(locationTime, Engine::GetElapsedTime());
 
     // Draw the object
     glBindVertexArray(mesh->GetBuffers()->m_VAO);
